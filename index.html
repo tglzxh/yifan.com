@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title id="title"></title>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/mammoth/1.4.16/mammoth.browser.min.js"></script>
+ 
+</head>
+<body>
+  <div id="message">
+  </div>
+  <script>
+   window.onload = function() {
+    preview("/tst.doc");
+   }
+
+  function preview(data){
+          axios({method:'get',url:data,responseType:'arraybuffer'}).then(res=> {
+            if(res.status==200){
+            //将文件转成arrayBuffer格式
+              var arrayBuffer=res.data
+              mammoth.convertToHtml({arrayBuffer: arrayBuffer})
+                .then((res)=>{
+                    document.getElementById('message').innerHTML = res.value
+                    let obj = document.getElementById('message').children
+                    //动态修改样式
+                    for(let i = 0;i<obj.length;i++){
+                      obj[i].style.color="#333"
+                      obj[i].style.fontSize="0.7rem"
+                    }
+                }).done();
+            }
+          }).catch(e => {console.log("error:" + e)})
+      }
+ </script>
+</body>
+</html>
