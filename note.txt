@@ -1,1 +1,33 @@
-test
+source ~/.bashrc
+
+PROCESS_CMD="***"
+
+num=$(ps -ef|grep "${PROCESS_CMD}"|grep jar|grep -v grep|wc -l)
+
+if [ $num -ne 0 ]; then
+    pid=$(ps -ef|grep "${PROCESS_CMD}"|grep jar|grep -v grep|awk -F' ' '{print $2}')
+    echo "service had been started, pid=${pid}"
+    exit 0
+fi
+
+SCRIPT_PATH=$(cd $(dirname $0);pwd)
+
+cd ${SCRIPT_PATH}/..
+chmod -R 700 .
+if [ ! -x "gc" ]; then
+    mkdir -p "gc" "dump"
+fi
+JAVA_OPS="-Xms8192M -Xmx8192M -XX:MaxGCPauseMillis=200 -XX:+UseG1GC"
+JAVA_OPS="$JAVA_OPS -XX:+PrintGCDetails"
+JAVA_OPS="$JAVA_OPS -XX:+PrintGCDateStamps"
+JAVA_OPS="$JAVA_OPS -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=25 -XX:GCLogFileSize=100M -Xloggc:gc/gc.log"
+JAVA_OPS="$JAVA_OPS -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./dump/"
+
+export SEC_RASP_CUSTOM_CONF=$(pwd)
+
+
+LIB_PATH=$(find | grep ".jar$" | tr '\n' ':')
+if [ ! -x "/opt/logs/***/" ]; then
+    mkdir -p "/opt/logs/***/"
+fi
+nohup java $JAVA_OPS $WISEAPM_AGENT_PARA -cp $LIB_PATH -Djava.library.path=. $PROCESS_CMD > /dev/null 2>&1 &
